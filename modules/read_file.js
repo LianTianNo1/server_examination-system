@@ -6,18 +6,40 @@ const xlsx = require('node-xlsx')
 /* POST users listing. */
 router.post('/', function (req, res, next) {
   let fileName = ''
-
+  if (!req.file) {
+    res.json({ code: -1, msg: '文件为空 ', data: null, error: '文件为空' })
+  }
+  if (
+    req.file.mimetype !==
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.shee'
+  ) {
+    res.json({
+      code: -1,
+      msg: '你选择的不是excel文件 ',
+      data: null,
+      error: '你选择的不是excel文件',
+    })
+  }
+  if (req.file.size > 100000) {
+    res.json({
+      code: -1,
+      msg: '文件过大，抱歉你选择10M以内的文件大小的Excel ',
+      data: null,
+      error: '文件过大，抱歉你选择10M以内的文件大小的Excel ',
+    })
+  }
   if (req.file !== undefined) {
     // 新的名字：时间+原文件名
     fileName = new Date().getTime() + '_' + req.file.originalname
+    const newNamePath = __dirname.replace('modules', 'uploads/') + fileName
     //重命名，加后缀，不然文件可能会显示乱码，打不开
-    fs.renameSync(
-      req.file.path,
-      __dirname.replace('\\modules', '\\uploads\\') + fileName
-    )
+    fs.renameSync(req.file.path, newNamePath)
+    // console.log(newNamePath)
   }
   // 刚才上传的文件
-  const db_path = `uploads\\${fileName}`
+  const db_path = `uploads/${fileName}`
+  // const db_path = req.file
+
   try {
     obj = xlsx.parse(db_path)
     const read_data = obj[0]['data']
@@ -40,7 +62,7 @@ router.post('/', function (req, res, next) {
         code: -1,
         msg: '文件读取的格式没有按照要求来 ',
         data: null,
-        error,
+        error: '文件读取的格式没有按照要求来',
       })
     }
     res.json({
@@ -58,7 +80,7 @@ router.post('/', function (req, res, next) {
       error: null,
     })
   } catch (error) {
-    res.json({ code: -1, msg: '文件读取失败 ', data: null, error })
+    res.json({ code: -1, msg: '文件读取失败 ', data: null, error: error })
   }
 })
 
