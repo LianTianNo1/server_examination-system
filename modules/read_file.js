@@ -6,12 +6,16 @@ const xlsx = require('node-xlsx')
 /* POST users listing. */
 router.post('/', function (req, res, next) {
   let fileName = ''
+  // console.log(
+  //   req.file.mimetype,
+  //   'application/vnd.openxmlformats-officedocument.spreadsheetml.shee'
+  // )
   if (!req.file) {
     res.json({ code: -1, msg: '文件为空 ', data: null, error: '文件为空' })
   }
   if (
     req.file.mimetype !==
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.shee'
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   ) {
     res.json({
       code: -1,
@@ -19,6 +23,7 @@ router.post('/', function (req, res, next) {
       data: null,
       error: '你选择的不是excel文件',
     })
+    return
   }
   if (req.file.size > 100000) {
     res.json({
@@ -27,6 +32,7 @@ router.post('/', function (req, res, next) {
       data: null,
       error: '文件过大，抱歉你选择10M以内的文件大小的Excel ',
     })
+    return
   }
   if (req.file !== undefined) {
     // 新的名字：时间+原文件名
@@ -64,6 +70,7 @@ router.post('/', function (req, res, next) {
         data: null,
         error: '文件读取的格式没有按照要求来',
       })
+      return
     }
     res.json({
       code: 1,
@@ -79,8 +86,10 @@ router.post('/', function (req, res, next) {
       },
       error: null,
     })
+    return
   } catch (error) {
     res.json({ code: -1, msg: '文件读取失败 ', data: null, error: error })
+    return
   }
 })
 

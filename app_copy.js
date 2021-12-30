@@ -4,25 +4,14 @@ var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
 var bodyParser = require('body-parser')
-
-// 引入
-const session = require('express-session')
-var app = express()
-// 配置
-app.use(cookieParser())
-app.use(
-  session({
-    resave: true,
-    saveUninitialized: false,
-    secret: 'demo',
-  })
-)
-
+let multer = require('multer')
+let upload = multer({ dest: 'uploads/' })
 var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 
-var examination = require('./modules/examination')
-var mycount = require('./modules/mycount')
+var readFileXls = require('./modules/read_file')
+
+var app = express()
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -49,9 +38,10 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use('/', indexRouter)
-
-app.use('/demo/examination', examination)
-app.use('/demo/mycount', mycount)
+app.get('/demo/examination/showPage', (req, res) => {
+  res.sendFile(path.join('public', 'read_file.html'), { root: __dirname })
+})
+app.use('/demo/examination/readFile', upload.single('file'), readFileXls)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
